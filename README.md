@@ -79,10 +79,23 @@ Android is lower even inside the same channel, and paid_social iOS users (49.32%
 
 Users who signed up in the week of Aug 10 return far less than the weeks around them, across every week observed, while cohort size is similar. Retention here uses all signups as the denominator.
 
+### 5. Significance tests
+
+Two-sided z-tests for two proportions (`two_proportion_ztest` in `analysis.py`, covered by unit tests):
+
+| Comparison | Group A | Group B | Difference | z | p-value |
+|---|---|---|---|---|---|
+| Last step: paid_social vs other channels | 41.8% (312/746) | 65.0% (880/1,353) | -23.2 pts | -10.28 | 8.9e-25 |
+| Last step inside paid_social: Android vs iOS+Web | 30.6% (82/268) | 48.1% (230/478) | -17.5 pts | -4.65 | 3.2e-06 |
+| Week-1 return: Aug 10 cohort vs Aug 3 + Aug 17 cohorts | 4.6% (21/458) | 10.7% (103/959) | -6.2 pts | -3.83 | 1.3e-04 |
+
+All three differences are far beyond what chance would produce, and they still pass a conservative Bonferroni threshold (0.05 / 3 tests). Because the patterns were designed into the simulated data, the p-values mainly confirm that the generator and my analysis agree. With real data they would be evidence, not proof.
+
+The retention counts (21, 103) are reconstructed from the percentages shown in Mixpanel, so they are approximate.
 ## Caveats
 
 - **Simulated data.** The three patterns were designed in, so these results show the method, not a real discovery.
-- **Small samples in the splits.** Some cells have only 180-300 users, so treat them as directional. I have not run a significance test and I am not claiming statistical significance.
+- **Small samples in the splits.** Some cells have only 180-300 users. The tests above use the normal approximation, which is reasonable at these counts, but results from small splits should still be treated as directional. Users are assumed independent, and pooling the three other channels into one group hides differences between them.
 - **Incomplete cohorts.** Mixpanel marks recent cohorts with `*` because later weeks have not happened yet. Those cells are not comparable, and I excluded them from the comparison. The last cohort (week of Sep 28) is also a partial week.
 - **Synthetic return visits.** The generator creates return visits in weekly steps, so the daily retention curve is spiky. That is an artifact of the generator, not user behavior.
 
@@ -103,6 +116,9 @@ Possible explanations for each pattern, to check rather than assume:
 | `events.csv`, `users.csv` | Generated data |
 | `screenshots/` | Mixpanel reports used above |
 | `requirements.txt` | Python dependencies |
+| `analysis.py` | Reusable functions: data validation, funnel, last-step by group, retention by signup week, z-test |
+| `tests/test_analysis.py` | pytest unit tests, including a check that the funnel matches the Mixpanel numbers |
+| `pytest.ini` | pytest configuration |
 
 ## Reproduce
 
@@ -110,6 +126,7 @@ Possible explanations for each pattern, to check rather than assume:
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 python generate_sim_data.py
+pytest   # runs the unit tests
 
 # optional: import into your own Mixpanel project
 export MIXPANEL_PROJECT_TOKEN="..."   # never commit credentials
@@ -120,7 +137,8 @@ python import_to_mixpanel.py
 ## Next steps
 
 - Build a Looker Studio dashboard on the same data (BigQuery or Google Sheets)
-- Add a segment-level significance test for the funnel splits
+- Add confidence intervals and a multiple-comparison correction to the tests
+- Turn the funnel and retention views into a small Streamlit app
 
 ## Process note
 
