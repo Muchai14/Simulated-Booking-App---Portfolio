@@ -51,9 +51,12 @@ with left:
     show = funnel.copy()
     show["step_conversion"] = show["step_conversion"].map(lambda v: "" if pd.isna(v) else f"{v:.1%}")
     show["overall_conversion"] = show["overall_conversion"].map(lambda v: f"{v:.1%}")
+    show = show.rename(columns={"step_conversion": "step conv.", "overall_conversion": "overall conv."})
     st.dataframe(show, hide_index=True)
 with right:
-    st.bar_chart(funnel.set_index("step")["users"])
+    # Number the steps so the bars stay in funnel order (the chart sorts labels A-Z).
+    chart = funnel.assign(label=[f"{i + 1}. {s}" for i, s in enumerate(funnel["step"])])
+    st.bar_chart(chart.set_index("label")["users"])
 st.caption("Unique users, steps in order, 7-day window from signup.")
 
 # ---------------- last step by group ----------------
