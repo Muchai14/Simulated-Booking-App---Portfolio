@@ -92,6 +92,23 @@ Two-sided z-tests for two proportions (`two_proportion_ztest` in `analysis.py`, 
 All three differences are far beyond what chance would produce, and they still pass a conservative Bonferroni threshold (0.05 / 3 tests). Because the patterns were designed into the simulated data, the p-values mainly confirm that the generator and my analysis agree. With real data they would be evidence, not proof.
 
 The retention counts (21, 103) are reconstructed from the percentages shown in Mixpanel, so they are approximate.
+
+## Streamlit app
+
+A small app on top of the same `analysis.py` functions: data quality check, funnel, last-step split by channel and platform, a channel comparison with the z-test, and retention by signup week. Incomplete cohorts are shown as "incomplete" instead of a misleading low number.
+
+![Streamlit funnel](screenshots/05_streamlit_funnel.png)
+![Streamlit retention](screenshots/06_streamlit_retention.png)
+
+Run it locally:
+
+​```bash
+pip install -r requirements.txt
+streamlit run app.py
+​```
+
+The funnel in the app matches the Mixpanel numbers exactly (6,000 / 4,467 / 3,575 / 2,099 / 1,192). Retention cohorts use UTC weeks, so counts differ slightly from the Mixpanel report (US/Pacific).
+
 ## Caveats
 
 - **Simulated data.** The three patterns were designed in, so these results show the method, not a real discovery.
@@ -119,6 +136,8 @@ Possible explanations for each pattern, to check rather than assume:
 | `analysis.py` | Reusable functions: data validation, funnel, last-step by group, retention by signup week, z-test |
 | `tests/test_analysis.py` | pytest unit tests, including a check that the funnel matches the Mixpanel numbers |
 | `pytest.ini` | pytest configuration |
+| `app.py` | Streamlit app (funnel, last-step split, z-test, retention) |
+| `import_to_mixpanel.py` | already listed above, no change |
 
 ## Reproduce
 
@@ -138,7 +157,7 @@ python import_to_mixpanel.py
 
 - Build a Looker Studio dashboard on the same data (BigQuery or Google Sheets)
 - Add confidence intervals and a multiple-comparison correction to the tests
-- Turn the funnel and retention views into a small Streamlit app
+
 
 ## Process note
 
